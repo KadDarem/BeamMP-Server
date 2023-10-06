@@ -16,6 +16,7 @@ extern TSentry Sentry;
 #include <sstream>
 #include <unordered_map>
 #include <zlib.h>
+#include <iostream.h>
 
 #include <doctest/doctest.h>
 #include <filesystem>
@@ -187,32 +188,32 @@ void RegisterThread(const std::string& str);
 
     #endif // defined(DEBUG)
     
-    #define beammp_warn(x) Application::Console().Write(_this_location + std::string("[WARN] ") + (x))
-    #define beammp_info(x) Application::Console().Write(_this_location + std::string("[INFO] ") + (x))
+    #define beammp_warn(x) std::cout << (_this_location + std::string("[WARN] ") + (x))
+    #define beammp_info(x) std::cout << (_this_location + std::string("[INFO] ") + (x))
     #define beammp_error(x)                                                               \
         do {                                                                              \
-            Application::Console().Write(_this_location + std::string("[ERROR] ") + (x)); \
+            std::cout << (_this_location + std::string("[ERROR] ") + (x)); \
             Sentry.AddErrorBreadcrumb((x), _file_basename, _line);                        \
         } while (false)
     #define beammp_lua_error(x)                                                               \
         do {                                                                                  \
-            Application::Console().Write(_this_location + std::string("[LUA ERROR] ") + (x)); \
+            std::cout << (_this_location + std::string("[LUA ERROR] ") + (x)); \
         } while (false)
     #define beammp_lua_warn(x)                                                               \
         do {                                                                                 \
-            Application::Console().Write(_this_location + std::string("[LUA WARN] ") + (x)); \
+            std::cout << (_this_location + std::string("[LUA WARN] ") + (x)); \
         } while (false)
-    #define luaprint(x) Application::Console().Write(_this_location + std::string("[LUA] ") + (x))
+    #define luaprint(x) std::cout << (_this_location + std::string("[LUA] ") + (x))
     #define beammp_debug(x)                                                                   \
         do {                                                                                  \
             if (Application::Settings.DebugModeEnabled) {                                     \
-                Application::Console().Write(_this_location + std::string("[DEBUG] ") + (x)); \
+                std::cout << (_this_location + std::string("[DEBUG] ") + (x)); \
             }                                                                                 \
         } while (false)
     #define beammp_event(x)                                                                   \
         do {                                                                                  \
             if (Application::Settings.DebugModeEnabled) {                                     \
-                Application::Console().Write(_this_location + std::string("[EVENT] ") + (x)); \
+                std::cout << (_this_location + std::string("[EVENT] ") + (x)); \
             }                                                                                 \
         } while (false)
     // trace() is a debug-build debug()
@@ -220,7 +221,7 @@ void RegisterThread(const std::string& str);
         #define beammp_trace(x)                                                                   \
             do {                                                                                  \
                 if (Application::Settings.DebugModeEnabled) {                                     \
-                    Application::Console().Write(_this_location + std::string("[TRACE] ") + (x)); \
+                    std::cout << (_this_location + std::string("[TRACE] ") + (x)); \
                 }                                                                                 \
             } while (false)
     #else
