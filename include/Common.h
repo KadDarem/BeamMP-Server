@@ -188,32 +188,32 @@ void RegisterThread(const std::string& str);
 
     #endif // defined(DEBUG)
     
-    #define beammp_warn(x) std::cout << (_this_location + std::string("[WARN] ") + (x))
-    #define beammp_info(x) std::cout << (_this_location + std::string("[INFO] ") + (x))
+    #define beammp_warn(x) std::cout << (_this_location + std::string("[WARN] ") + (x)) << std::endl
+    #define beammp_info(x) std::cout << (_this_location + std::string("[INFO] ") + (x)) << std::endl
     #define beammp_error(x)                                                               \
         do {                                                                              \
-            std::cout << (_this_location + std::string("[ERROR] ") + (x)); \
+            std::cout << (_this_location + std::string("[ERROR] ") + (x)) << std::endl; \
             Sentry.AddErrorBreadcrumb((x), _file_basename, _line);                        \
         } while (false)
     #define beammp_lua_error(x)                                                               \
         do {                                                                                  \
-            std::cout << (_this_location + std::string("[LUA ERROR] ") + (x)); \
+            std::cout << (_this_location + std::string("[LUA ERROR] ") + (x)) << std::endl; \
         } while (false)
     #define beammp_lua_warn(x)                                                               \
         do {                                                                                 \
-            std::cout << (_this_location + std::string("[LUA WARN] ") + (x)); \
+            std::cout << (_this_location + std::string("[LUA WARN] ") + (x)) << std::endl; \
         } while (false)
-    #define luaprint(x) std::cout << (_this_location + std::string("[LUA] ") + (x))
+    #define luaprint(x) std::cout << (_this_location + std::string("[LUA] ") + (x)) << std::endl
     #define beammp_debug(x)                                                                   \
         do {                                                                                  \
             if (Application::Settings.DebugModeEnabled) {                                     \
-                std::cout << (_this_location + std::string("[DEBUG] ") + (x)); \
+                std::cout << (_this_location + std::string("[DEBUG] ") + (x)) << std::endl; \
             }                                                                                 \
         } while (false)
     #define beammp_event(x)                                                                   \
         do {                                                                                  \
             if (Application::Settings.DebugModeEnabled) {                                     \
-                std::cout << (_this_location + std::string("[EVENT] ") + (x)); \
+                std::cout << (_this_location + std::string("[EVENT] ") + (x)) << std::endl; \
             }                                                                                 \
         } while (false)
     // trace() is a debug-build debug()
@@ -221,7 +221,7 @@ void RegisterThread(const std::string& str);
         #define beammp_trace(x)                                                                   \
             do {                                                                                  \
                 if (Application::Settings.DebugModeEnabled) {                                     \
-                    std::cout << (_this_location + std::string("[TRACE] ") + (x)); \
+                    std::cout << (_this_location + std::string("[TRACE] ") + (x)) << std::endl; \
                 }                                                                                 \
             } while (false)
     #else
