@@ -16,7 +16,7 @@ extern TSentry Sentry;
 #include <sstream>
 #include <unordered_map>
 #include <zlib.h>
-#include <iostream.h>
+#include <iostream>
 
 #include <doctest/doctest.h>
 #include <filesystem>
