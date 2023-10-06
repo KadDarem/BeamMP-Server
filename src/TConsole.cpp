@@ -9,7 +9,6 @@
 
 #include <ctime>
 #include <sstream>
-#include <iostream>
 
 static inline bool StringStartsWith(const std::string& What, const std::string& StartsWith) {
     return What.size() >= StartsWith.size() && What.substr(0, StartsWith.size()) == StartsWith;
@@ -590,52 +589,118 @@ Commands
 }
 
 TConsole::TConsole() {
+    mCommandline.enable_history();
+    mCommandline.set_history_limit(20);
+    mCommandline.set_prompt("> ");
     BackupOldLog();
-    // std::string commande;
-    // std::cin >> commande;
-    // std::out << "test: " << commande << std::endl;
-    // mCommandline.on_command = [this](Commandline& c) {
-    //     try {
-    //         auto TrimmedCmd = c.get_command();
-    //         TrimmedCmd = TrimString(TrimmedCmd);
-    //         auto [cmd, args] = ParseCommand(TrimmedCmd);
-    //         mCommandline.write(mCommandline.prompt() + TrimmedCmd);
-    //         if (mIsLuaConsole) {
-    //             if (!mLuaEngine) {
-    //                 beammp_info("Lua not started yet, please try again in a second");
-    //             } else if (!cmd.empty() && cmd.at(0) == ':') {
-    //                 HandleLuaInternalCommand(cmd.substr(1));
-    //             } else {
-    //                 auto Future = mLuaEngine->EnqueueScript(mStateId, { std::make_shared<std::string>(TrimmedCmd), "", "" });
-    //                 while (!Future->Ready) {
-    //                     std::this_thread::yield(); // TODO: Add a timeout
-    //                 }
-    //                 if (Future->Error) {
-    //                     beammp_lua_error("error in " + mStateId + ": " + Future->ErrorMessage);
-    //                 }
-    //             }
-    //         } else {
-    //             if (!mLuaEngine) {
-    //                 beammp_error("Attempted to run a command before Lua engine started. Please wait and try again.");
-    //             } else if (cmd == "exit") {
-    //                 beammp_info("gracefully shutting down");
-    //                 Application::GracefullyShutdown();
-    //             } else if (cmd == "say") {
-    //                 RunAsCommand(TrimmedCmd, true);
-    //                 Command_Say(TrimmedCmd);
-    //             } else {
-    //                 if (mCommandMap.find(cmd) != mCommandMap.end()) {
-    //                     mCommandMap.at(cmd)(cmd, args);
-    //                     RunAsCommand(TrimmedCmd, true);
-    //                 } else {
-    //                     RunAsCommand(TrimmedCmd);
-    //                 }
-    //             }
-    //         }
-    //     } catch (const std::exception& e) {
-    //         beammp_error("Console died with: " + std::string(e.what()) + ". This could be a fatal error and could cause the server to terminate.");
-    //     }
-    // };
+    mCommandline.on_command = [this](Commandline& c) {
+        try {
+            auto TrimmedCmd = c.get_command();
+            TrimmedCmd = TrimString(TrimmedCmd);
+            auto [cmd, args] = ParseCommand(TrimmedCmd);
+            mCommandline.write(mCommandline.prompt() + TrimmedCmd);
+            if (mIsLuaConsole) {
+                if (!mLuaEngine) {
+                    beammp_info("Lua not started yet, please try again in a second");
+                } else if (!cmd.empty() && cmd.at(0) == ':') {
+                    HandleLuaInternalCommand(cmd.substr(1));
+                } else {
+                    auto Future = mLuaEngine->EnqueueScript(mStateId, { std::make_shared<std::string>(TrimmedCmd), "", "" });
+                    while (!Future->Ready) {
+                        std::this_thread::yield(); // TODO: Add a timeout
+                    }
+                    if (Future->Error) {
+                        beammp_lua_error("error in " + mStateId + ": " + Future->ErrorMessage);
+                    }
+                }
+            } else {
+                if (!mLuaEngine) {
+                    beammp_error("Attempted to run a command before Lua engine started. Please wait and try again.");
+                } else if (cmd == "exit") {
+                    beammp_info("gracefully shutting down");
+                    Application::GracefullyShutdown();
+                } else if (cmd == "say") {
+                    RunAsCommand(TrimmedCmd, true);
+                    Command_Say(TrimmedCmd);
+                } else {
+                    if (mCommandMap.find(cmd) != mCommandMap.end()) {
+                        mCommandMap.at(cmd)(cmd, args);
+                        RunAsCommand(TrimmedCmd, true);
+                    } else {
+                        RunAsCommand(TrimmedCmd);
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            beammp_error("Console died with: " + std::string(e.what()) + ". This could be a fatal error and could cause the server to terminate.");
+        }
+    };
+    mCommandline.on_autocomplete = [this](Commandline&, std::string stub, int) {
+        std::vector<std::string> suggestions;
+        try {
+            if (mIsLuaConsole) { // if lua
+                if (!mLuaEngine) {
+                    beammp_info("Lua not started yet, please try again in a second");
+                } else {
+                    std::string prefix {}; // stores non-table part of input
+                    for (size_t i = stub.length(); i > 0; i--) { // separate table from input
+                        if (!std::isalnum(stub[i - 1]) && stub[i - 1] != '_' && stub[i - 1] != '.') {
+                            prefix = stub.substr(0, i);
+                            stub = stub.substr(i);
+                            break;
+                        }
+                    }
+
+                    // turn string into vector of keys
+                    std::vector<std::string> tablekeys;
+
+                    SplitString(stub, '.', tablekeys);
+
+                    // remove last key if incomplete
+                    if (stub.rfind('.') != stub.size() - 1 && !tablekeys.empty()) {
+                        tablekeys.pop_back();
+                    }
+
+                    auto keys = mLuaEngine->GetStateTableKeysForState(mStateId, tablekeys);
+
+                    for (const auto& key : keys) { // go through each bottom-level key
+                        auto last_dot = stub.rfind('.');
+                        std::string last_atom;
+                        if (last_dot != std::string::npos) {
+                            last_atom = stub.substr(last_dot + 1);
+                        }
+                        std::string before_last_atom = stub.substr(0, last_dot + 1); // get last confirmed key
+                        auto last = stub.substr(stub.rfind('.') + 1);
+                        std::string::size_type n = key.find(last);
+                        if (n == 0) {
+                            suggestions.push_back(prefix + before_last_atom + key);
+                        }
+                    }
+                }
+            } else { // if not lua
+                if (stub.find("lua") == 0) { // starts with "lua" means we should suggest state names
+                    std::string after_prefix = TrimString(stub.substr(3));
+                    auto stateNames = mLuaEngine->GetLuaStateNames();
+
+                    for (const auto& name : stateNames) {
+                        if (name.find(after_prefix) == 0) {
+                            suggestions.push_back("lua " + name);
+                        }
+                    }
+                } else {
+                    for (const auto& [cmd_name, cmd_fn] : mCommandMap) {
+                        if (cmd_name.find(stub) == 0) {
+                            suggestions.push_back(cmd_name);
+                        }
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            beammp_error("Console died with: " + std::string(e.what()) + ". This could be a fatal error and could cause the server to terminate.");
+        }
+        std::sort(suggestions.begin(), suggestions.end());
+        return suggestions;
+    };
 }
 
 void TConsole::Write(const std::string& str) {
