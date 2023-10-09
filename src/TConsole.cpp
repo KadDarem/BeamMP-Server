@@ -9,6 +9,7 @@
 
 #include <ctime>
 #include <sstream>
+#include <iostream>
 
 static inline bool StringStartsWith(const std::string& What, const std::string& StartsWith) {
     return What.size() >= StartsWith.size() && What.substr(0, StartsWith.size()) == StartsWith;
