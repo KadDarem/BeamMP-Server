@@ -592,7 +592,7 @@ Commands
 
 void foo() {
     while (1) {
-        std::cout << "Test comd:" << std:endl;
+        std::cout << "Test comd:" << std::endl;
         std::string str;
         std::cin >> str;
         std::count << str << std::endl;
@@ -600,8 +600,8 @@ void foo() {
 }
 
 TConsole::TConsole() {
-    std::thread t1(foo)
-    ti.join()
+    std::thread t1(foo);
+    ti.join();
     mCommandline.enable_history();
     mCommandline.set_history_limit(20);
     mCommandline.set_prompt("> ");
