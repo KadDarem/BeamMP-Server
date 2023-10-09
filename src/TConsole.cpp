@@ -591,12 +591,7 @@ Commands
 }
 
 void foo() {
-    while (1) {
-        std::cout << "Test comd:" << std::endl;
-        std::string str;
-        std::cin >> str;
-        std::count << str << std::endl;
-    }
+    std::cout << "test" << std::endl;
 }
 
 TConsole::TConsole() {
