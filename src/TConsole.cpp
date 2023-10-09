@@ -10,6 +10,7 @@
 #include <ctime>
 #include <sstream>
 #include <iostream>
+#include <thread>
 
 static inline bool StringStartsWith(const std::string& What, const std::string& StartsWith) {
     return What.size() >= StartsWith.size() && What.substr(0, StartsWith.size()) == StartsWith;
@@ -589,7 +590,18 @@ Commands
     }
 }
 
+void foo() {
+    while (1) {
+        std::cout << "Test comd:" << std:endl;
+        std::string str;
+        std::cin >> str;
+        std::count << str << std::endl;
+    }
+}
+
 TConsole::TConsole() {
+    std::thread t1(foo)
+    ti.join()
     mCommandline.enable_history();
     mCommandline.set_history_limit(20);
     mCommandline.set_prompt("> ");
