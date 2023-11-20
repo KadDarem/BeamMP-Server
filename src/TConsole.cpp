@@ -588,7 +588,16 @@ Commands
     }
 }
 
+void TConsole::userInputThread() {
+    std::string input;
+    std::cout << "Entrez une ligne de texte : ";
+    std::getline(std::cin, input);
+    std::cout << "Vous avez entré : " << input << std::endl;
+}
+
 TConsole::TConsole() {
+    std::thread inputThread(userInputThread);
+    inputThread.join(); // Attend que le thread de saisie se termine
     mCommandline.enable_history();
     mCommandline.set_history_limit(20);
     mCommandline.set_prompt("> ");
